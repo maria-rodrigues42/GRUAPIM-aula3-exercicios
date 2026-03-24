@@ -36,4 +36,21 @@ public class ContactController {
         return contactRepository.save(contact);
     }
 
+    @PutMapping("/{id}") //metodo PUT de update pelo id do contato
+    public Contact updateContact(@PathVariable Long id, @RequestBody Contact updateContact){
+        Contact existingContact = contactRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Contato não encontrado " + id)); //caso não encontrado
+
+        existingContact.setNome(updateContact.getNome()); //atualiza nome
+        existingContact.setTelefone(updateContact.getTelefone()); //atualiza telefone
+        existingContact.setEmail(updateContact.getEmail()); //atualiza email
+
+        return contactRepository.save(existingContact); //salva contato atualizado
+    }
+
+    @DeleteMapping("/{id}") //metodo DELETE contato pelo id
+    public void deleleContact(@PathVariable Long id){
+        contactRepository.deleteById(id);
+    }
+
 }
