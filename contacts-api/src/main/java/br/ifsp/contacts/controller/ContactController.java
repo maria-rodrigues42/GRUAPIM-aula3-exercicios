@@ -58,4 +58,22 @@ public class ContactController {
         return contactRepository.findByNomeContainingIgnoreCase(nome); //metodo assinado no repository
     }
 
+    @PatchMapping("/{id}")// metodo PATH para atualizar apenas um ou mais campos
+    public Contact pathUpdateContact (@PathVariable Long id, @RequestBody Contact updateContact){
+        Contact existingContact = contactRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Contato não encontrado " + id)); //busca se o contato existe pelo id
+
+        if (updateContact.getNome() != null && !updateContact.getNome().isBlank()){ //nn atualizar dado nulo
+            existingContact.setNome(updateContact.getNome()); //update nome
+        }
+        if (updateContact.getTelefone() != null && !updateContact.getTelefone().isBlank()){ //nn atualizar dado nulo
+            existingContact.setTelefone(updateContact.getTelefone()); //update telefone
+        }
+        if (updateContact.getEmail() != null && !updateContact.getEmail().isBlank()){ //nn atualizar dado nulo
+            existingContact.setEmail(updateContact.getEmail()); //update email
+        }
+
+        return contactRepository.save(existingContact); //retorna com o campo atualizado
+    }
+
 }
