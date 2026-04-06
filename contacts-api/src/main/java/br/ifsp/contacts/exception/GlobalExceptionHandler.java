@@ -11,6 +11,7 @@ import java.util.Map;
 // classe para interpretar os erros de validação @Valid
 public class GlobalExceptionHandler {
 
+    //para erro 400
     @ResponseStatus(HttpStatus.BAD_REQUEST) //retornaa http 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleValidationException(MethodArgumentNotValidException ex){
@@ -20,6 +21,24 @@ public class GlobalExceptionHandler {
 
         errorResponse.put("Erro", errorMessage);
 
+        return errorResponse;
+    }
+
+    //para contato não encontrato 404
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public Map<String, String> handlerResourceNotFound(ResourceNotFoundException ex){
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("Erro", ex.getMessage());
+        return errorResponse;
+    }
+
+    //para erro no servidor 500
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    public Map<String, String> handlerGenericException(Exception ex){
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("Erro", "Ocorreu um erro interno no servidor. Tente novamente");
         return errorResponse;
     }
 }
