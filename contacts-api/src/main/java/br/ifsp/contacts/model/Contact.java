@@ -1,31 +1,48 @@
 package br.ifsp.contacts.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-// classe modelo de dados para contatos
-@Entity //indica que o objeto será mapeado para uma tabela
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
 public class Contact {
 
-    @Id //indica que o campo é chave primaria
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //gera um valor unico para o campo
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "O campo nome não pode estar vazio")
     private String nome;
+
+    @Size(min = 8, max = 15, message = "O telefone deve ter entre 8 e 15 caracteres")
     private String telefone;
+
+    @Email(message = "O email deve ter um formato válido")
     private String email;
 
-    public Contact() {//metodo contrutor vazio exigido pelo JPA
+    @OneToMany(mappedBy = "contact", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Address> addresses = new ArrayList<>();
+
+    public Contact() {
     }
 
-    public Contact(String nome, String telefone, String email) { //contrutor para criação de objetos
+    public Contact(String nome, String telefone, String email) {
         this.nome = nome;
         this.telefone = telefone;
         this.email = email;
     }
 
-    //metodos getters e setters
     public Long getId() {
         return id;
     }
@@ -56,5 +73,13 @@ public class Contact {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public List<Address> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<Address> addresses) {
+        this.addresses = addresses;
     }
 }
