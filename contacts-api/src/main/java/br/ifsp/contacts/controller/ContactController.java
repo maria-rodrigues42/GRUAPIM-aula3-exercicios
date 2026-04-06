@@ -1,5 +1,6 @@
 package br.ifsp.contacts.controller;
 
+import br.ifsp.contacts.dto.ContactResponseDTO;
 import br.ifsp.contacts.exception.ResourceNotFoundException;
 import br.ifsp.contacts.model.Address;
 import br.ifsp.contacts.model.Contact;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/contacts")
@@ -31,68 +33,82 @@ public class ContactController {
     private AddressRepository addressRepository;
 
     @GetMapping
-    public List<Contact> getAllContacts() {
-        return contactRepository.findAll();
+    public List<ContactResponseDTO> getAllContacts() {
+        return contactRepository.findAll().stream()
+                .map(ContactResponseDTO::new)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public Contact getContactId(@PathVariable Long id) {
-        return contactRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contato não encontrado"));
+    public ContactResponseDTO getContactId(@PathVariable Long id) {
+        Contact contact = contactRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Contato com ID: " + id + " nao encontrado"));
+        return new ContactResponseDTO(contact);
     }
 
     @PostMapping
-    public Contact createContact(@Valid @RequestBody Contact contact) {
-        return contactRepository.save(contact);
+    public ContactResponseDTO createContact(@Valid @RequestBody Contact contact) {
+        Contact savedContact = contactRepository.save(contact);
+        return new ContactResponseDTO(savedContact);
     }
 
     @PutMapping("/{id}")
-    public Contact updateContact(@PathVariable Long id, @Valid @RequestBody Contact updateContact) {
+    public ContactResponseDTO updateContact(@PathVariable Long id, @Valid @RequestBody Contact updateContact) {
         Contact existingContact = contactRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contato não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Contato com ID: " + id + " nao encontrado"));
 
         existingContact.setNome(updateContact.getNome());
         existingContact.setTelefone(updateContact.getTelefone());
         existingContact.setEmail(updateContact.getEmail());
 
-        return contactRepository.save(existingContact);
+        Contact savedContact = contactRepository.save(existingContact);
+        return new ContactResponseDTO(savedContact);
     }
 
     @DeleteMapping("/{id}")
-    public void deleleContact(@PathVariable Long id) {
-        if (!contactRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Contato não encontrado");
-        }
-        contactRepository.deleteById(id);
+    public void deleteContact(@PathVariable Long id) {
+        Contact existingContact = contactRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Nao foi possivel deletar contato ID: " + id + ". Contato nao encontrado"));
+
+        contactRepository.delete(existingContact);
     }
 
     @GetMapping("/search")
-    public List<Contact> getContactByName(@RequestParam("name") String nome) {
-        return contactRepository.findByNomeContainingIgnoreCase(nome);
+    public List<ContactResponseDTO> getContactByName(@RequestParam("name") String nome) {
+        List<Contact> contacts = contactRepository.findByNomeContainingIgnoreCase(nome);
+        if (contacts.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum contato encontrado com o nome: " + nome);
+        }
+
+        return contacts.stream()
+                .map(ContactResponseDTO::new)
+                .collect(Collectors.toList());
     }
 
     @PatchMapping("/{id}")
-    public Contact pathUpdateContact(@PathVariable Long id, @RequestBody Contact parcialContact) {
+    public ContactResponseDTO patchUpdateContact(@PathVariable Long id, @RequestBody Contact partialContact) {
         Contact existingContact = contactRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contato não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Contato com ID: " + id + " nao encontrado"));
 
-        if (parcialContact.getNome() != null && !parcialContact.getNome().isBlank()) {
-            existingContact.setNome(parcialContact.getNome());
+        if (partialContact.getNome() != null && !partialContact.getNome().isBlank()) {
+            existingContact.setNome(partialContact.getNome());
         }
-        if (parcialContact.getTelefone() != null && !parcialContact.getTelefone().isBlank()) {
-            existingContact.setTelefone(parcialContact.getTelefone());
+        if (partialContact.getTelefone() != null && !partialContact.getTelefone().isBlank()) {
+            existingContact.setTelefone(partialContact.getTelefone());
         }
-        if (parcialContact.getEmail() != null && !parcialContact.getEmail().isBlank()) {
-            existingContact.setEmail(parcialContact.getEmail());
+        if (partialContact.getEmail() != null && !partialContact.getEmail().isBlank()) {
+            existingContact.setEmail(partialContact.getEmail());
         }
 
-        return contactRepository.save(existingContact);
+        Contact savedContact = contactRepository.save(existingContact);
+        return new ContactResponseDTO(savedContact);
     }
 
     @GetMapping("/{id}/addresses")
     public List<Address> getAddressesByContact(@PathVariable Long id) {
         if (!contactRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Contato não encontrado");
+            throw new ResourceNotFoundException("Contato com ID: " + id + " nao encontrado");
         }
         return addressRepository.findByContact_Id(id);
     }

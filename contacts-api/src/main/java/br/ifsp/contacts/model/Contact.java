@@ -21,13 +21,15 @@ public class Contact {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "O campo nome não pode estar vazio")
+    @NotBlank(message = "O campo nome nao pode estar vazio")
     private String nome;
 
+    @NotBlank(message = "O campo telefone nao pode estar vazio")
     @Size(min = 8, max = 15, message = "O telefone deve ter entre 8 e 15 caracteres")
     private String telefone;
 
-    @Email(message = "O email deve ter um formato válido")
+    @NotBlank(message = "O campo email nao pode estar vazio")
+    @Email(message = "Digite um email valido")
     private String email;
 
     @OneToMany(mappedBy = "contact", cascade = CascadeType.ALL, orphanRemoval = true)
