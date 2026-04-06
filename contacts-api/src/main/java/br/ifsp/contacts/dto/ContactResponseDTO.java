@@ -9,12 +9,12 @@ public class ContactResponseDTO {
     private String telefone;
     private String email;
 
-    public ContactResponseDTO(Long id, String nome, String telefone, String email) {
-        this.id = id;
-        this.nome = nome;
-        this.telefone = telefone;
-        this.email = email;
-    }
+   public ContactResponseDTO(Contact contact){
+       this.id = contact.getId();
+       this.nome = contact.getNome();
+       this.telefone = contact.getTelefone();
+       this.email = contact.getEmail();
+   }
 
     public Long getId() {
         return id;

@@ -26,7 +26,7 @@ public class ContactController {
     @GetMapping//indica que o endpoint chaqmado é metodo GET
     public List<ContactResponseDTO> getAllContacts(){
         return contactRepository.findAll().stream()
-                .map(contact -> new ContactResponseDTO(contact))
+                .map(ContactResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
@@ -53,8 +53,8 @@ public class ContactController {
         existingContact.setTelefone(updateContact.getTelefone()); //atualiza telefone
         existingContact.setEmail(updateContact.getEmail()); //atualiza email
 
-        Contact contact =  contactRepository.save(existingContact);
-        return new ContactResponseDTO(updateContact);//salva contato atualizado
+        Contact contactSalvo =  contactRepository.save(existingContact);
+        return new ContactResponseDTO(contactSalvo);//salva contato atualizado
     }
 
     @DeleteMapping("/{id}") //metodo DELETE contato pelo id
@@ -87,8 +87,8 @@ public class ContactController {
             existingContact.setEmail(parcialContact.getEmail()); //update email
         }
 
-        Contact contact = contactRepository.save(existingContact);
-        return new ContactResponseDTO(updateContact());//retorna com o campo atualizado
+        Contact contactSalvo = contactRepository.save(existingContact);
+        return new ContactResponseDTO(contactSalvo);//retorna com o campo atualizado
     }
 
 }
