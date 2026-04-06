@@ -34,7 +34,7 @@ public class ContactController {
     public ContactResponseDTO getContactId(@PathVariable Long id){ //@PathVariable "amarra" a variável {id} da URL
         // findById retorna um Optional, então usamos orElseThrow
         Contact contact = contactRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Contato com ID:" + id+ "não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Contato com ID:" + id+ " não encontrado"));
         return new ContactResponseDTO(contact);
     }
 
@@ -47,7 +47,7 @@ public class ContactController {
     @PutMapping("/{id}") //metodo PUT de update pelo id do contato
     public ContactResponseDTO updateContact(@PathVariable Long id, @Valid @RequestBody Contact updateContact){
         Contact existingContact = contactRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Contato com ID:" + id+ "não encontrado")); //caso não encontrado
+                .orElseThrow(()-> new ResourceNotFoundException("Contato com ID:" + id+ " não encontrado")); //caso não encontrado
 
         existingContact.setNome(updateContact.getNome()); //atualiza nome
         existingContact.setTelefone(updateContact.getTelefone()); //atualiza telefone
@@ -60,16 +60,25 @@ public class ContactController {
     @DeleteMapping("/{id}") //metodo DELETE contato pelo id
     public void deleleContact(@PathVariable Long id){
         Contact existingContact = contactRepository.findById(id)
-            .orElseThrow(()-> new ResourceNotFoundException("Nãao foi possível deletar contato ID:" +id+ ".Contato não encontrado"));
+            .orElseThrow(()-> new ResourceNotFoundException("Não foi possível deletar contato ID: " +id+ ". Contato não encontrado"));
 
         contactRepository.delete(existingContact);
     }
 
     @GetMapping("/search") //metodo GET para buscar contato pelo nome
     public List<ContactResponseDTO> getContactByName(@RequestParam("name") String nome){
-        return contactRepository.findByNomeContainingIgnoreCase(nome).stream()
+        // 1. Guarda o resultado da busca numa lista
+        List<Contact> contatosEncontrados = contactRepository.findByNomeContainingIgnoreCase(nome);
+
+        // 2. Verifica se a lista está vazia
+        if (contatosEncontrados.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum contato encontrado com o nome: " + nome);
+        }
+
+        // 3. Se não estiver vazia, converte para DTO e retorna
+        return contatosEncontrados.stream()
                 .map(ContactResponseDTO::new)
-                .collect(Collectors.toList()); //metodo assinado no repository
+                .collect(Collectors.toList());
     }
 
     @PatchMapping("/{id}")// metodo PATH para atualizar apenas um ou mais campos
