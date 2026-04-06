@@ -1,5 +1,6 @@
 package br.ifsp.contacts.controller;
 
+import br.ifsp.contacts.dto.ContactResponseDTO;
 import br.ifsp.contacts.model.Contact;
 import br.ifsp.contacts.repository.ContactRepository;
 import jakarta.validation.Valid;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /*
 * Classe responsavel por mapear as rotas ou endpoints dos contatos
@@ -21,24 +23,28 @@ public class ContactController {
     private ContactRepository contactRepository; //classe repository
 
     @GetMapping//indica que o endpoint chaqmado é metodo GET
-    public List<Contact> getAllContacts(){
-        return contactRepository.findAll();
+    public List<ContactResponseDTO> getAllContacts(){
+        return contactRepository.findAll().stream()
+                .map(contact -> new ContactResponseDTO(contact))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")//indica metodo GET
-    public Contact getContactId(@PathVariable Long id){ //@PathVariable "amarra" a variável {id} da URL
+    public ContactResponseDTO getContactId(@PathVariable Long id){ //@PathVariable "amarra" a variável {id} da URL
         // findById retorna um Optional, então usamos orElseThrow
-        return contactRepository.findById(id)
+        Contact contact = contactRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contato não encontrado!"));
+        return new ContactResponseDTO(contact);
     }
 
     @PostMapping//indica metodo POST (create)
-    public Contact createContact(@Valid @RequestBody Contact contact){ //@RequestBody indica que o objeto Contact será preenchido
-        return contactRepository.save(contact);
+    public ContactResponseDTO createContact(@Valid @RequestBody Contact contact){ //@RequestBody indica que o objeto Contact será preenchido
+        Contact savedContact = contactRepository.save(contact);
+        return  new ContactResponseDTO(savedContact);
     }
 
     @PutMapping("/{id}") //metodo PUT de update pelo id do contato
-    public Contact updateContact(@PathVariable Long id, @Valid @RequestBody Contact updateContact){
+    public ContactResponseDTO updateContact(@PathVariable Long id, @Valid @RequestBody Contact updateContact){
         Contact existingContact = contactRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Contato não encontrado " + id)); //caso não encontrado
 
@@ -46,7 +52,8 @@ public class ContactController {
         existingContact.setTelefone(updateContact.getTelefone()); //atualiza telefone
         existingContact.setEmail(updateContact.getEmail()); //atualiza email
 
-        return contactRepository.save(existingContact); //salva contato atualizado
+        Contact contact =  contactRepository.save(existingContact);
+        return new ContactResponseDTO(updateContact);//salva contato atualizado
     }
 
     @DeleteMapping("/{id}") //metodo DELETE contato pelo id
@@ -55,12 +62,14 @@ public class ContactController {
     }
 
     @GetMapping("/search") //metodo GET para buscar contato pelo nome
-    public List<Contact> getContactByName(@RequestParam("name") String nome){
-        return contactRepository.findByNomeContainingIgnoreCase(nome); //metodo assinado no repository
+    public List<ContactResponseDTO> getContactByName(@RequestParam("name") String nome){
+        return contactRepository.findByNomeContainingIgnoreCase(nome).stream()
+                .map(ContactResponseDTO::new)
+                .collect(Collectors.toList()); //metodo assinado no repository
     }
 
     @PatchMapping("/{id}")// metodo PATH para atualizar apenas um ou mais campos
-    public Contact pathUpdateContact (@PathVariable Long id, @RequestBody Contact parcialContact){
+    public ContactResponseDTO pathUpdateContact (@PathVariable Long id, @RequestBody Contact parcialContact){
         Contact existingContact = contactRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Contato não encontrado " + id)); //busca se o contato existe pelo id
 
@@ -74,7 +83,8 @@ public class ContactController {
             existingContact.setEmail(parcialContact.getEmail()); //update email
         }
 
-        return contactRepository.save(existingContact); //retorna com o campo atualizado
+        Contact contact = contactRepository.save(existingContact);
+        return new ContactResponseDTO(updateContact());//retorna com o campo atualizado
     }
 
 }
