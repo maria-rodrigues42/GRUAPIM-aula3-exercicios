@@ -1,7 +1,3 @@
-Aqui está uma sugestão de README completo e bem estruturado para o seu projeto, baseado no código e nos arquivos que você forneceu:
-
-***
-
 # Contacts API - Aula 3 (APIs e Microsserviços em Java)
 
 Este repositório contém uma API RESTful desenvolvida em Spring Boot para o gerenciamento de contatos e seus respectivos endereços. O projeto faz parte de uma atividade ou laboratório de estudo sobre APIs e Microsserviços em Java. 
